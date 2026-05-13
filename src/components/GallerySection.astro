@@ -13,6 +13,7 @@ const { id, title, tagline, images } = Astro.props;
 ---
 
 <section class="gallery-section" id={id} aria-labelledby={`${id}-heading`}>
+	<div class="section-ambient" aria-hidden="true"></div>
 	<div class="section-inner">
 		<header class="section-head">
 			<h2 class="section-title" id={`${id}-heading`}>{title}</h2>
@@ -22,16 +23,23 @@ const { id, title, tagline, images } = Astro.props;
 			{
 				images.map((src, index) => (
 					<figure class="card" role="listitem">
-						<div class="card-frame">
-							<Image
-								class="card-img"
-								src={src}
-								alt={`${title} — artwork ${index + 1}`}
-								sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 33vw"
-								loading="lazy"
-								decoding="async"
-							/>
-						</div>
+						<button
+							type="button"
+							class="card-trigger js-lightbox-thumb"
+							aria-label={`View fullscreen — ${title} ${index + 1}`}
+						>
+							<span class="card-sheen" aria-hidden="true"></span>
+							<span class="card-frame">
+								<Image
+									class="card-img"
+									src={src}
+									alt={`${title} — artwork ${index + 1}`}
+									sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 33vw"
+									loading="lazy"
+									decoding="async"
+								/>
+							</span>
+						</button>
 					</figure>
 				))
 			}
@@ -41,17 +49,49 @@ const { id, title, tagline, images } = Astro.props;
 
 <style>
 	.gallery-section {
-		padding: clamp(3rem, 8vw, 6rem) clamp(1.25rem, 4vw, 3rem);
+		padding: clamp(3.5rem, 9vw, 7rem) clamp(1.25rem, 4vw, 3rem);
 		position: relative;
+		isolation: isolate;
+		opacity: 0;
+		transform: translate3d(0, 22px, 0);
+		transition:
+			opacity 1s var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1)),
+			transform 1.05s var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 
-	.gallery-section::before {
-		content: '';
+	@media (prefers-reduced-motion: reduce) {
+		.gallery-section {
+			opacity: 1;
+			transform: none;
+			transition: none;
+		}
+	}
+
+	.gallery-section.is-revealed {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+
+	.section-ambient {
 		position: absolute;
 		inset: 0;
-		background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--accent-soft), transparent 55%);
 		pointer-events: none;
-		opacity: 0.5;
+		z-index: 0;
+		background:
+			radial-gradient(ellipse 90% 55% at 50% -5%, rgba(196, 165, 116, 0.09), transparent 58%),
+			radial-gradient(ellipse 70% 50% at 100% 40%, rgba(100, 130, 200, 0.05), transparent 55%),
+			radial-gradient(ellipse 60% 45% at 0% 70%, rgba(196, 165, 116, 0.04), transparent 50%);
+		opacity: 0.85;
+	}
+
+	.section-ambient::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: min(45%, 420px);
+		background: linear-gradient(to top, rgba(10, 11, 14, 0.55), transparent);
 	}
 
 	.section-inner {
@@ -71,10 +111,11 @@ const { id, title, tagline, images } = Astro.props;
 		font-weight: 700;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		background: linear-gradient(180deg, var(--text) 0%, var(--text-muted) 100%);
+		background: linear-gradient(185deg, rgba(248, 250, 255, 0.98) 0%, rgba(180, 188, 205, 0.55) 100%);
 		-webkit-background-clip: text;
 		background-clip: text;
 		color: transparent;
+		filter: drop-shadow(0 0 42px rgba(196, 165, 116, 0.12));
 	}
 
 	.section-tagline {
@@ -105,14 +146,36 @@ const { id, title, tagline, images } = Astro.props;
 		margin: 0 0 clamp(12px, 2vw, 20px);
 		break-inside: avoid;
 		border-radius: var(--radius-md);
-		overflow: hidden;
-		background: var(--surface);
-		box-shadow: var(--shadow-card);
-		border: 1px solid var(--border);
+		position: relative;
+		background: linear-gradient(
+			160deg,
+			rgba(255, 255, 255, 0.05) 0%,
+			rgba(18, 21, 28, 0.95) 42%,
+			rgba(12, 14, 18, 1) 100%
+		);
+		box-shadow:
+			var(--shadow-card),
+			0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+			0 1px 0 rgba(255, 255, 255, 0.06) inset,
+			0 0 48px rgba(196, 165, 116, 0.04);
 		transition:
-			transform 0.5s var(--ease-out),
-			box-shadow 0.5s var(--ease-out),
-			border-color 0.35s var(--ease-out);
+			transform 0.65s var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1)),
+			box-shadow 0.65s var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1)),
+			filter 0.55s var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1));
+	}
+
+	.card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.07),
+			inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+		pointer-events: none;
+		opacity: 0.75;
+		z-index: 2;
+		transition: opacity 0.55s var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -121,22 +184,78 @@ const { id, title, tagline, images } = Astro.props;
 		}
 	}
 
+	.card:hover::before {
+		opacity: 0.95;
+	}
+
 	.card:hover {
-		transform: translateY(-4px);
-		box-shadow: var(--shadow-soft), 0 0 0 1px var(--border-strong), 0 0 48px var(--accent-glow);
-		border-color: rgba(196, 165, 116, 0.2);
+		transform: translateY(-6px);
+		box-shadow:
+			var(--shadow-soft),
+			0 0 0 1px rgba(196, 165, 116, 0.12) inset,
+			0 0 64px rgba(196, 165, 116, 0.1),
+			0 0 100px rgba(90, 110, 160, 0.06);
+		filter: saturate(1.03);
+	}
+
+	.card-trigger {
+		display: block;
+		width: 100%;
+		margin: 0;
+		padding: 0;
+		border: none;
+		background: transparent;
+		border-radius: inherit;
+		cursor: zoom-in;
+		position: relative;
+		overflow: hidden;
+		text-align: left;
+	}
+
+	.card-trigger:focus-visible {
+		outline: 2px solid rgba(196, 165, 116, 0.55);
+		outline-offset: 3px;
+	}
+
+	.card-sheen {
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		pointer-events: none;
+		background: linear-gradient(
+			115deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0) 38%,
+			rgba(255, 255, 255, 0.06) 50%,
+			rgba(255, 255, 255, 0) 62%,
+			transparent 100%
+		);
+		transform: translateX(-120%);
+		transition: transform 0.9s var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1));
+		opacity: 0.85;
+	}
+
+	.card:hover .card-sheen {
+		transform: translateX(120%);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.card-sheen {
+			display: none;
+		}
 	}
 
 	.card-frame {
+		display: block;
 		overflow: hidden;
-		aspect-ratio: auto;
+		border-radius: calc(var(--radius-md) - 1px);
 	}
 
 	.card-img {
 		width: 100%;
 		height: auto;
 		vertical-align: middle;
-		transition: transform 0.7s var(--ease-out);
+		transition: transform 0.85s var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -146,6 +265,6 @@ const { id, title, tagline, images } = Astro.props;
 	}
 
 	.card:hover .card-img {
-		transform: scale(1.04);
+		transform: scale(1.045);
 	}
 </style>

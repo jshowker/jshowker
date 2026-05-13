@@ -4,6 +4,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import GallerySection from '../components/GallerySection.astro';
+import Lightbox from '../components/Lightbox.astro';
 import { SITE_TITLE, SITE_DESCRIPTION, DISCORD_URL, TWITTER_URL } from '../consts';
 
 const imageModules = import.meta.glob<{ default: ImageMetadata }>(
@@ -48,10 +49,19 @@ const rates = [
 	</head>
 	<body>
 		<div class="noise" aria-hidden="true"></div>
+		<canvas id="dust-canvas" class="dust-canvas" aria-hidden="true"></canvas>
 		<Header />
 		<main>
 			<section class="hero" aria-labelledby="hero-title">
-				<div class="hero-bg" aria-hidden="true"></div>
+				<div class="hero-bg" aria-hidden="true">
+					<div class="hero-orb hero-orb-a"></div>
+					<div class="hero-orb hero-orb-b"></div>
+					<div class="hero-parallax" aria-hidden="true">
+						<div class="hero-parallax-inner"></div>
+					</div>
+					<div class="hero-grid" aria-hidden="true"></div>
+					<div class="hero-fog" aria-hidden="true"></div>
+				</div>
 				<div class="hero-content">
 					<p class="hero-eyebrow">3D Art</p>
 					<h1 class="hero-title" id="hero-title">Jshowkerr</h1>
@@ -140,6 +150,19 @@ const rates = [
 			}
 		</main>
 		<Footer />
+		<Lightbox />
+		<script>
+			import { initPortfolioClient } from '../scripts/portfolio-client';
+			initPortfolioClient();
+		</script>
+		<noscript>
+			<style is:global>
+				.gallery-section {
+					opacity: 1 !important;
+					transform: none !important;
+				}
+			</style>
+		</noscript>
 	</body>
 </html>
 
@@ -148,9 +171,24 @@ const rates = [
 		pointer-events: none;
 		position: fixed;
 		inset: 0;
-		z-index: 9999;
-		opacity: 0.035;
+		z-index: 9998;
+		opacity: 0.042;
+		mix-blend-mode: overlay;
 		background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+	}
+
+	.dust-canvas {
+		position: fixed;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		opacity: 0.38;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.dust-canvas {
+			display: none;
+		}
 	}
 
 	.hero {
@@ -164,28 +202,113 @@ const rates = [
 	}
 
 	.hero-bg {
+		--scroll-shift: 0;
+		position: absolute;
+		inset: -12%;
+		background:
+			radial-gradient(ellipse 100% 85% at 50% -15%, rgba(196, 165, 116, 0.11), transparent 52%),
+			radial-gradient(ellipse 55% 45% at 85% 55%, rgba(95, 120, 190, 0.09), transparent 50%),
+			radial-gradient(ellipse 50% 40% at 10% 65%, rgba(196, 165, 116, 0.05), transparent 48%),
+			linear-gradient(195deg, #0c0d12 0%, var(--bg-deep) 38%, #07080b 100%);
+		transform: translate3d(0, calc(var(--scroll-shift) * 36px), 0);
+		transition: transform 0.75s var(--ease-premium);
+		overflow: hidden;
+	}
+
+	.hero-orb {
+		position: absolute;
+		border-radius: 50%;
+		filter: blur(80px);
+		opacity: 0.55;
+		pointer-events: none;
+		mix-blend-mode: screen;
+	}
+
+	.hero-orb-a {
+		width: min(55vw, 520px);
+		height: min(55vw, 520px);
+		top: -18%;
+		left: 50%;
+		transform: translateX(-50%);
+		background: radial-gradient(circle at 40% 40%, rgba(196, 165, 116, 0.35), transparent 65%);
+		animation: orb-drift-a 22s ease-in-out infinite alternate;
+	}
+
+	.hero-orb-b {
+		width: min(70vw, 640px);
+		height: min(70vw, 640px);
+		bottom: -28%;
+		right: -12%;
+		background: radial-gradient(circle at 50% 50%, rgba(80, 110, 180, 0.22), transparent 68%);
+		animation: orb-drift-b 26s ease-in-out infinite alternate;
+	}
+
+	@keyframes orb-drift-a {
+		0% {
+			transform: translateX(-50%) translateY(0) scale(1);
+		}
+		100% {
+			transform: translateX(-52%) translateY(18px) scale(1.06);
+		}
+	}
+
+	@keyframes orb-drift-b {
+		0% {
+			transform: translate(0, 0) scale(1);
+		}
+		100% {
+			transform: translate(-24px, -14px) scale(1.05);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero-orb-a,
+		.hero-orb-b {
+			animation: none;
+		}
+	}
+
+	.hero-parallax {
+		position: absolute;
+		inset: -8%;
+		pointer-events: none;
+		will-change: transform;
+	}
+
+	.hero-parallax-inner {
 		position: absolute;
 		inset: 0;
 		background:
-			radial-gradient(ellipse 100% 80% at 50% -20%, rgba(196, 165, 116, 0.08), transparent 50%),
-			radial-gradient(ellipse 60% 40% at 80% 60%, rgba(90, 110, 160, 0.06), transparent 45%),
-			linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-elevated) 100%);
+			radial-gradient(ellipse 80% 60% at 50% 40%, rgba(255, 255, 255, 0.04), transparent 62%),
+			radial-gradient(ellipse 120% 80% at 50% 120%, rgba(0, 0, 0, 0.35), transparent 45%);
+		opacity: 0.9;
 	}
 
-	.hero-bg::after {
-		content: '';
+	.hero-grid {
 		position: absolute;
 		inset: 0;
 		background-image:
-			linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-			linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-		background-size: 64px 64px;
-		mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black, transparent);
+			linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+		background-size: 72px 72px;
+		mask-image: radial-gradient(ellipse 72% 58% at 50% 32%, black, transparent 72%);
+		opacity: 0.85;
+		pointer-events: none;
+	}
+
+	.hero-fog {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 42%;
+		background: linear-gradient(to top, rgba(5, 6, 9, 0.85), transparent);
+		pointer-events: none;
 	}
 
 	.hero-content {
 		position: relative;
-		z-index: 1;
+		z-index: 2;
 		max-width: 720px;
 		margin: 0 auto;
 		text-align: center;
@@ -198,6 +321,7 @@ const rates = [
 		text-transform: uppercase;
 		color: var(--accent);
 		margin: 0 0 1.25rem;
+		text-shadow: 0 0 28px rgba(196, 165, 116, 0.35);
 	}
 
 	.hero-title {
@@ -206,7 +330,28 @@ const rates = [
 		letter-spacing: 0.02em;
 		line-height: 1;
 		margin: 0 0 1rem;
-		text-shadow: 0 0 80px var(--accent-glow);
+		text-shadow:
+			0 0 100px rgba(196, 165, 116, 0.22),
+			0 0 1px rgba(0, 0, 0, 0.5);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		@keyframes hero-title-breathe {
+			0%,
+			100% {
+				text-shadow:
+					0 0 90px rgba(196, 165, 116, 0.18),
+					0 0 1px rgba(0, 0, 0, 0.5);
+			}
+			50% {
+				text-shadow:
+					0 0 120px rgba(196, 165, 116, 0.28),
+					0 0 1px rgba(0, 0, 0, 0.5);
+			}
+		}
+		.hero-title {
+			animation: hero-title-breathe 9s ease-in-out infinite;
+		}
 	}
 
 	.hero-sub {
@@ -243,8 +388,36 @@ const rates = [
 		color: var(--text-muted);
 		padding: 0.45rem 0.85rem;
 		border-radius: 999px;
-		background: var(--surface);
-		border: 1px solid var(--border);
+		background: linear-gradient(165deg, rgba(30, 34, 44, 0.95), rgba(18, 20, 26, 0.98));
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+			0 1px 0 rgba(255, 255, 255, 0.05) inset;
+		transition:
+			transform 0.55s var(--ease-premium),
+			border-color 0.55s var(--ease-premium),
+			box-shadow 0.55s var(--ease-premium),
+			color 0.45s var(--ease-premium);
+	}
+
+	.software li:hover {
+		transform: translateY(-2px);
+		border-color: rgba(196, 165, 116, 0.22);
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+			0 1px 0 rgba(255, 255, 255, 0.06) inset,
+			0 12px 36px rgba(0, 0, 0, 0.35),
+			0 0 28px rgba(196, 165, 116, 0.08);
+		color: rgba(232, 234, 239, 0.78);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.software li {
+			transition: none;
+		}
+		.software li:hover {
+			transform: none;
+		}
 	}
 
 	.hero-lower {
@@ -266,10 +439,53 @@ const rates = [
 		position: relative;
 		padding: clamp(1.35rem, 3vw, 1.75rem);
 		border-radius: var(--radius-lg);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		box-shadow: var(--shadow-card);
+		background: linear-gradient(
+			168deg,
+			rgba(255, 255, 255, 0.05) 0%,
+			rgba(20, 23, 31, 0.96) 42%,
+			rgba(14, 16, 22, 1) 100%
+		);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		box-shadow:
+			var(--shadow-card),
+			0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+			0 1px 0 rgba(255, 255, 255, 0.06) inset,
+			0 0 60px rgba(196, 165, 116, 0.05);
 		overflow: hidden;
+		transition:
+			box-shadow 0.65s var(--ease-premium),
+			transform 0.65s var(--ease-premium);
+		isolation: isolate;
+	}
+
+	.pricing:hover {
+		transform: translateY(-2px);
+		box-shadow:
+			var(--shadow-soft),
+			0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+			0 1px 0 rgba(255, 255, 255, 0.07) inset,
+			0 0 72px rgba(196, 165, 116, 0.08);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.pricing {
+			transition: none;
+		}
+		.pricing:hover {
+			transform: none;
+		}
+	}
+
+	.pricing::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: linear-gradient(105deg, rgba(255, 255, 255, 0.07) 0%, transparent 38%);
+		opacity: 0.22;
+		pointer-events: none;
+		mix-blend-mode: soft-light;
+		z-index: 0;
 	}
 
 	.pricing-glow {
@@ -281,6 +497,12 @@ const rates = [
 		background: radial-gradient(circle, var(--accent-glow), transparent 70%);
 		opacity: 0.35;
 		pointer-events: none;
+		z-index: 0;
+	}
+
+	.pricing > *:not(.pricing-glow) {
+		position: relative;
+		z-index: 1;
 	}
 
 	.pricing-title {
@@ -330,8 +552,9 @@ const rates = [
 		align-items: baseline;
 		gap: 1rem;
 		padding: 0.55rem 0;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 		font-size: 0.9rem;
+		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
 	}
 
 	.rate-list li:last-of-type {
@@ -360,11 +583,41 @@ const rates = [
 	.links-block {
 		padding: clamp(1.35rem, 3vw, 1.75rem);
 		border-radius: var(--radius-lg);
-		background: rgba(17, 19, 24, 0.6);
-		border: 1px solid var(--border);
+		background: linear-gradient(
+			195deg,
+			rgba(255, 255, 255, 0.04) 0%,
+			rgba(16, 18, 24, 0.88) 45%,
+			rgba(10, 11, 15, 0.95) 100%
+		);
+		border: 1px solid rgba(255, 255, 255, 0.06);
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.3) inset,
+			0 1px 0 rgba(255, 255, 255, 0.05) inset,
+			0 24px 64px rgba(0, 0, 0, 0.28);
+		transition:
+			box-shadow 0.65s var(--ease-premium),
+			transform 0.65s var(--ease-premium);
+	}
+
+	.links-block:hover {
+		transform: translateY(-2px);
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.3) inset,
+			0 1px 0 rgba(255, 255, 255, 0.06) inset,
+			0 32px 80px rgba(0, 0, 0, 0.35),
+			0 0 48px rgba(196, 165, 116, 0.06);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.links-block {
+			transition: none;
+		}
+		.links-block:hover {
+			transform: none;
+		}
 	}
 
 	.links-heading {
@@ -391,17 +644,19 @@ const rates = [
 		font-weight: 600;
 		color: var(--text);
 		padding: 0.5rem 0;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 		transition:
-			color 0.25s var(--ease-out),
-			padding-left 0.35s var(--ease-out),
-			border-color 0.25s var(--ease-out);
+			color 0.45s var(--ease-premium),
+			padding-left 0.55s var(--ease-premium),
+			border-color 0.45s var(--ease-premium),
+			letter-spacing 0.55s var(--ease-premium);
 	}
 
 	.links-list a:hover {
 		color: var(--accent);
 		padding-left: 0.35rem;
 		border-color: rgba(196, 165, 116, 0.35);
+		letter-spacing: 0.02em;
 	}
 
 	.work-anchor {

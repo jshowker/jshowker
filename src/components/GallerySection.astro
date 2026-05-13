@@ -1,0 +1,151 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	id: string;
+	title: string;
+	tagline?: string;
+	images: ImageMetadata[];
+}
+
+const { id, title, tagline, images } = Astro.props;
+---
+
+<section class="gallery-section" id={id} aria-labelledby={`${id}-heading`}>
+	<div class="section-inner">
+		<header class="section-head">
+			<h2 class="section-title" id={`${id}-heading`}>{title}</h2>
+			{tagline && <p class="section-tagline">{tagline}</p>}
+		</header>
+		<div class="masonry" role="list">
+			{
+				images.map((src, index) => (
+					<figure class="card" role="listitem">
+						<div class="card-frame">
+							<Image
+								class="card-img"
+								src={src}
+								alt={`${title} — artwork ${index + 1}`}
+								sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 33vw"
+								loading="lazy"
+								decoding="async"
+							/>
+						</div>
+					</figure>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.gallery-section {
+		padding: clamp(3rem, 8vw, 6rem) clamp(1.25rem, 4vw, 3rem);
+		position: relative;
+	}
+
+	.gallery-section::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--accent-soft), transparent 55%);
+		pointer-events: none;
+		opacity: 0.5;
+	}
+
+	.section-inner {
+		max-width: 1400px;
+		margin: 0 auto;
+		position: relative;
+		z-index: 1;
+	}
+
+	.section-head {
+		margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+		text-align: center;
+	}
+
+	.section-title {
+		font-size: clamp(1.75rem, 4vw, 2.5rem);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		background: linear-gradient(180deg, var(--text) 0%, var(--text-muted) 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.section-tagline {
+		margin: 0.5rem 0 0;
+		font-size: 0.95rem;
+		color: var(--text-faint);
+		font-weight: 500;
+	}
+
+	.masonry {
+		column-count: 1;
+		column-gap: clamp(12px, 2vw, 20px);
+	}
+
+	@media (min-width: 560px) {
+		.masonry {
+			column-count: 2;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.masonry {
+			column-count: 3;
+		}
+	}
+
+	.card {
+		margin: 0 0 clamp(12px, 2vw, 20px);
+		break-inside: avoid;
+		border-radius: var(--radius-md);
+		overflow: hidden;
+		background: var(--surface);
+		box-shadow: var(--shadow-card);
+		border: 1px solid var(--border);
+		transition:
+			transform 0.5s var(--ease-out),
+			box-shadow 0.5s var(--ease-out),
+			border-color 0.35s var(--ease-out);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.card {
+			transition: none;
+		}
+	}
+
+	.card:hover {
+		transform: translateY(-4px);
+		box-shadow: var(--shadow-soft), 0 0 0 1px var(--border-strong), 0 0 48px var(--accent-glow);
+		border-color: rgba(196, 165, 116, 0.2);
+	}
+
+	.card-frame {
+		overflow: hidden;
+		aspect-ratio: auto;
+	}
+
+	.card-img {
+		width: 100%;
+		height: auto;
+		vertical-align: middle;
+		transition: transform 0.7s var(--ease-out);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.card-img {
+			transition: none;
+		}
+	}
+
+	.card:hover .card-img {
+		transform: scale(1.04);
+	}
+</style>

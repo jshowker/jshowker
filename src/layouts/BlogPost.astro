@@ -18,6 +18,8 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				width: calc(100% - 2em);
 				max-width: 100%;
 				margin: 0;
+				padding-top: 5rem;
+				padding-bottom: 3rem;
 			}
 			.hero-image {
 				width: 100%;
@@ -25,15 +27,23 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			.hero-image img {
 				display: block;
 				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
+				border-radius: var(--radius-md);
+				box-shadow: var(--shadow-card);
 			}
 			.prose {
 				width: 720px;
 				max-width: calc(100% - 2em);
 				margin: auto;
 				padding: 1em;
-				color: rgb(var(--gray-dark));
+				color: var(--text-muted);
+			}
+			.prose :global(h1),
+			.prose :global(h2),
+			.prose :global(h3) {
+				color: var(--text);
+			}
+			.prose :global(a) {
+				color: var(--accent);
 			}
 			.title {
 				margin-bottom: 1em;
@@ -46,7 +56,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			}
 			.date {
 				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
+				color: var(--text-faint);
 			}
 			.last-updated-on {
 				font-style: italic;
